@@ -18,14 +18,29 @@ import logging
 import os
 import re
 import threading
+
+
+# ====================== 加载自定义词典==============================
+# user_list = os.listdir("./word_dict")
+# for file in user_list:
+#     jieba.load_userdict("./word_dict/{}".format(file))
+
 # ======================配置的变量 begin=============================
 duplicate_words_flag = True  # 是否启动去掉重复词True启动
 CHANNEL_SUB = 'socket'
-CHANNEL_PUB = 'segment'
+CHANNEL_PUB = 'segment-standard'
+
 REDIS_HOST = '117.78.35.174'
 REDIS_PORT = 6001
-REDIS_PASSWORD = 123456
+REDIS_PASSWORD = 'aibot123456'
 REDIS_DB=0
+
+try:
+    name = sys.argv[2]
+except:
+    pass
+
+
 """
 alnum_to_chises       数字转汉字
 delPunctuae           去除标点特殊符号
@@ -46,7 +61,7 @@ if not os.path.exists(log):
 def getLogger():
     logger = logging.getLogger(__name__)
     logger.setLevel(level=logging.INFO)
-    handler = logging.FileHandler("{0}standard{1}.log".format(log + os.path.sep, REDIS_PORT))
+    handler = logging.FileHandler("{0}segment_standard{1}.log".format(log + os.path.sep, REDIS_PORT))
     handler.setLevel(logging.INFO)
     formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     handler.setFormatter(formatter)
@@ -55,14 +70,14 @@ def getLogger():
     console.setLevel(logging.INFO)
 
     logger.addHandler(handler)
-    # logger.addHandler(console)
+    logger.addHandler(console)
     return logger
 
 
 logger = getLogger()
 
 
-class StandardHandler(threading.Thread):
+class StandardHandler():
     pool = redis.ConnectionPool(host=REDIS_HOST, port=REDIS_PORT, password=REDIS_PASSWORD, db=REDIS_DB)
     redisClient = redis.StrictRedis(connection_pool=pool)
 
@@ -75,13 +90,11 @@ class StandardHandler(threading.Thread):
         for message in p.listen():
             if message['type'] != 'message':
                 continue
-            logger.info('从{0}频道取出的数据是:{1}'.format(CHANNEL_SUB, message['data']))
-            pushData = self.handler(message['data'])
+            logger.info('从{0}频道取出的数据是:{1}'.format(CHANNEL_SUB, message['data'].decode("utf-8")))
+            pushData = self.handler_standard(message['data'])
             # 添加切词处理
             logger.info("--------开始切词--------{}".format(pushData))
-            # message = json.loads(pushData)
-            pushData, tf_idf = self.handlerData2(pushData)
-
+            pushData, tf_idf = self.handler_segment(pushData)
             StandardHandler.redisClient.publish(CHANNEL_PUB, pushData)
             logger.info('放入{0}频道数据:{1}'.format(CHANNEL_PUB, pushData))
             logger.info('Python切词处理完成')
@@ -95,14 +108,11 @@ class StandardHandler(threading.Thread):
             value = jsonObjs['message']
             chatbody_newMessage = dispatcher(value, messageType)
             jsonObjs['message'] = chatbody_newMessage
-            logger.info("Python进过一列标准化最后放到Chatboddy中message的数据为:%s" %
-                        chatbody_newMessage)
-        # print("____endJsonobj____", jsonObjs)
-        logger.debug(
-            "in get_chatbody_message——————处理结束后的数据————————{}".format(jsonObjs))
+            # logger.info("Python进过一列标准化最后放到Chatboddy中message的数据为:%s" %
+            #             chatbody_newMessage)
         return jsonObjs
 
-    def handler(self, data):
+    def handler_standard(self, data):
         nlp = self.get_chatbody_message(data)
         nlp['operation'] = "python标准化"
         nlp = json.dumps(nlp, ensure_ascii=False).replace(': ', ':')
@@ -110,38 +120,37 @@ class StandardHandler(threading.Thread):
         return push_data
 
     def cutWord(self, nlp0_data):
-        logger.debug("________message________{}".format(nlp0_data))
+        jieba.load_userdict("userdict.txt")
         if duplicate_words_flag:
             seg = jieba.posseg.lcut(nlp0_data)
+        logger.info("原声切词"+str(seg))
+        # 相同词性临近词合并
+        seg = hebing(seg)
         # 构造所需的存储格式
         # 1 顺序存储
-        l = [{i.word: i.flag} for i in seg if i.flag != 'x']
+        # l = [{i.word: i.flag} for i in seg if i.flag != 'x']
+        # 去r, p
+        l = [{i.word: i.flag} for i in seg if i.flag not in ['x', 'r', 'p', 'uj']]
         # 2 针对TF计数存储
         # {"2018":2, "年": 1}
         # 词性过滤
-        dis_list = ['c', 'e', 'nr', 'o', 'r', 'u', 'y', 'x']
+        dis_list = ['c', 'e', 'nr', 'o', 'r', 'u', 'y', 'x', 'r', 'p']
         all_list = [i.word for i in seg if i.flag not in dis_list]
         num_dict = Counter(all_list)
-
-        logger.debug("in cutWord————————切词后的返回结果——————{0}+++++++{1}".format(l, json.dumps(num_dict)))
         return l, num_dict
 
     def nlp_cut_word_one(self, nlp0_data):
         # 反序列化，转成字典
-        logger.debug("————————json处理前——————{}".format(nlp0_data))
         jsonObjs = json.loads(nlp0_data)
-        logger.debug(
-            "in nlp_cut_word_one ——————josn.loads后的结果——————{0}+++++++++++++{1}".format(jsonObjs, type(jsonObjs)))
         # 如果存在key值message，进行切词
         if 'message' in jsonObjs.keys():
             li, num_dict = self.cutWord(jsonObjs['message'])
             jsonObjs['segments'] = li
             dic = dict()
             dic["TF_IDF"] = num_dict
-        logger.debug("in nlp_cut_word_one————————切词处理后————————:{0}------------{1}".format(jsonObjs, dic))
         return jsonObjs, dic
 
-    def handlerData2(self, data):
+    def handler_segment(self, data):
         nlp, tf_idf = self.nlp_cut_word_one(data)
         # chattbody出模型时间
         nlp['timeHandleEnd'] = str(int(round(time.time() * 1000)))
@@ -152,6 +161,25 @@ class StandardHandler(threading.Thread):
         return nlp, tf_idf
 
 
+# --------------------------------------------合并相同临近词性的词 -------------------------------------------
+def hebing(word_list):
+    x = len(word_list) - 1
+    try:
+        for i in range(0, x):
+            if word_list[i].flag in ['m', 't'] and word_list[i + 1].flag in ['m', 't']:
+                print(word_list[i + 1].flag)
+                if word_list[i].flag == word_list[i + 1].flag:
+                    word_list[i].word = word_list[i].word + word_list[i + 1].word
+                    del word_list[i + 1]
+                elif word_list[i + 1].flag == 't' and word_list[i].flag == 'm':
+                    word_list[i].word = word_list[i].word + word_list[i + 1].word
+                    if word_list[i + 1].flag == 't':
+                        word_list[i].flag = 't'
+                    del word_list[i + 1]
+                x = len(word_list) - 1
+        return word_list
+    except:
+        return hebing(word_list)
 # --------------------------------------------数字转汉字（单个一一转）begin------------------------------------
 
 
@@ -183,10 +211,10 @@ def num_2_ch(matched):
 
 # 数字转文字
 def num_to_ch(text_str):
-    print("________进入ch2num_______", text_str, type(text_str))
+    # print("________进入ch2num_______", text_str, type(text_str))
     text_str = re.sub(
         "(?P<value>\d+)", num_2_ch, text_str)
-    print("________chiese2alnum______", text_str)
+    # print("________chiese2alnum______", text_str)
     return text_str
 
 # --------------------------------------------数字转汉字（单个一一转）end------------------------------------
@@ -209,7 +237,7 @@ def delPunctuae(text_str):
     # 去除标点符号
     r = """[\s\n]+"""
     text = re.sub(r, '', text_str)
-    logger.debug("in delPunctuae ——————————去除标点符号后的数据————————{}".format(text))
+    # logger.debug("in delPunctuae ——————————去除标点符号后的数据————————{}".format(text))
     return text.strip()
 
 # ---------------------------------去除标点符号 end -----------------------------------
@@ -367,7 +395,8 @@ def cn2dig(cn):
     # print(res)
     lcn = list(cn)
     if res is not None:
-
+        if len(set(lcn)) == 1:
+            return cn
         # print(lcn)
         unit = 0  # 当前的单位
         ldig = []  # 临时数组
@@ -481,13 +510,11 @@ result = ""
 
 def dispatcher(result, messageType):
     for method in method_list:
-        # print(method)
         if '11' == str(messageType):
             break
         result = eval(method)(result)
-        logger.info("Python调用方法%s标准化数据:%s" %
-                    (eval(method).__name__, result))
-
+        # logger.info("Python调用方法%s标准化数据:%s" %
+        #             (eval(method).__name__, result))
     return result
 
 # =========================调用标准化处理函数调度器  end =============================
@@ -499,9 +526,9 @@ class ThreadDispatcher(object):
 
     def start(self):
         s = StandardHandler()
-        s.start()
+        s.run()
         logger.info("------------------- start is OK -----------------")
-        s.join()
+        # s.join()
 
 
 if __name__ == '__main__':
