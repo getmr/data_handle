@@ -3,13 +3,13 @@
 # @File  : segment201861_6001.py
 # @Author: Zhangjintao
 # @Date  : 2018/6/1
-# @Desc  : ¶àÏß³Ì¶ÁÈ¡
+# @Desc  : å¤šçº¿ç¨‹è¯»å–
 import json
 import redis
 import jieba
-# ĞèÒªÁíÍâ¼ÓÔØÒ»¸ö´ÊĞÔ±ê×¢Ä£¿é
+# éœ€è¦å¦å¤–åŠ è½½ä¸€ä¸ªè¯æ€§æ ‡æ³¨æ¨¡å—
 import jieba.posseg
-from collections import OrderedDict,Counter
+from collections import OrderedDict, Counter
 import sys
 import time
 import logging
@@ -17,123 +17,129 @@ import os
 import re
 import threading
 __author__ = 'wangg'
- 
-# ======================ÅäÖÃµÄ±äÁ¿ begin=============================
-duplicate_words_flag = True  # ÊÇ·ñÆô¶¯È¥µôÖØ¸´´ÊTrueÆô¶¯
+
+# ======================é…ç½®çš„å˜é‡ begin=============================
+duplicate_words_flag = True  # æ˜¯å¦å¯åŠ¨å»æ‰é‡å¤è¯Trueå¯åŠ¨
 CHANNEL_SUB = 'standard-py'
 CHANNEL_PUB = 'segment'
 REDIS_HOST = '117.78.35.174'
 REDIS_PORT = sys.argv[1]
 REDIS_PASSWORD = 123456
 REDIS_DB = 0
-# ======================ÅäÖÃµÄ±äÁ¿ end=============================
- 
-current_path =  os.getcwd()
-log =  current_path + os.path.sep + 'log'
+# ======================é…ç½®çš„å˜é‡ end=============================
+
+current_path = os.getcwd()
+log = current_path + os.path.sep + 'log'
 if not os.path.exists(log):
     os.mkdir(log)
- 
- 
+
+
 def getLogger():
     logger = logging.getLogger(__name__)
     logger.setLevel(level=logging.INFO)
-    handler = logging.FileHandler("{0}segment{1}.log".format(log+os.path.sep, REDIS_PORT) )
- 
+    handler = logging.FileHandler(
+        "{0}segment{1}.log".format(log+os.path.sep, REDIS_PORT))
+
     handler.setLevel(logging.INFO)
-    formatter = logging.Formatter('%(asctime)s - %(filename)s - %(levelname)s - %(message)s')
+    formatter = logging.Formatter(
+        '%(asctime)s - %(filename)s - %(levelname)s - %(message)s')
     handler.setFormatter(formatter)
- 
+
     console = logging.StreamHandler()
     console.setLevel(logging.INFO)
- 
+
     logger.addHandler(handler)
     logger.addHandler(console)
     return logger
- 
- 
+
+
 logger = getLogger()
- 
- 
+
+
 class PubSubHandlerThread(threading.Thread):
-    """´ÓRedis¶ÓÁĞÖĞ¶ÁÈ¡Êı¾İ²¢½øĞĞ·Ö´ÊºÍ´ÊĞÔ±ê×¢"""
-    pool = redis.ConnectionPool(host=REDIS_HOST, port=REDIS_PORT, password=REDIS_PASSWORD, db=REDIS_DB)
+    """ä»Redisé˜Ÿåˆ—ä¸­è¯»å–æ•°æ®å¹¶è¿›è¡Œåˆ†è¯å’Œè¯æ€§æ ‡æ³¨"""
+    pool = redis.ConnectionPool(
+        host=REDIS_HOST, port=REDIS_PORT, password=REDIS_PASSWORD, db=REDIS_DB)
     redisClient = redis.StrictRedis(connection_pool=pool)
- 
+
     def __init__(self):
         threading.Thread.__init__(self)
- 
+
     def run(self):
         p = PubSubHandlerThread.redisClient.pubsub()
-        # ¶ÁÈ¡Êı¾İ
+        # è¯»å–æ•°æ®
         p.subscribe(CHANNEL_SUB)
         for message in p.listen():
             if message['type'] != 'message':
                 continue
-            logger.info('´Ó{0}ÆµµÀÈ¡³öµÄÊı¾İÊÇ:{1}'.format(CHANNEL_SUB, message['data']))
+            logger.info('ä»{0}é¢‘é“å–å‡ºçš„æ•°æ®æ˜¯:{1}'.format(
+                CHANNEL_SUB, message['data']))
             pushData, tf_idf = self.handlerData(message['data'])
             PubSubHandlerThread.redisClient.publish(CHANNEL_PUB, pushData)
-            logger.info('·ÅÈë{0}ÆµµÀÊı¾İ:{1}'.format(CHANNEL_PUB, pushData))
-            logger.info('PythonÇĞ´Ê´¦ÀíÍê³É')
- 
+            logger.info('æ”¾å…¥{0}é¢‘é“æ•°æ®:{1}'.format(CHANNEL_PUB, pushData))
+            logger.info('Pythonåˆ‡è¯å¤„ç†å®Œæˆ')
+
     def cutWord(self, nlp0_data):
         logger.debug("________message________{}".format(nlp0_data))
         if duplicate_words_flag:
             seg = jieba.posseg.lcut(nlp0_data)
-        # ¹¹ÔìËùĞèµÄ´æ´¢¸ñÊ½
-        # 1 Ë³Ğò´æ´¢
+        # æ„é€ æ‰€éœ€çš„å­˜å‚¨æ ¼å¼
+        # 1 é¡ºåºå­˜å‚¨
         l = [{i.word: i.flag} for i in seg if i.flag != 'x']
-        # 2 Õë¶ÔTF¼ÆÊı´æ´¢
-        # {"2018":2, "Äê": 1}
-        # ´ÊĞÔ¹ıÂË
+        # 2 é’ˆå¯¹TFè®¡æ•°å­˜å‚¨
+        # {"2018":2, "å¹´": 1}
+        # è¯æ€§è¿‡æ»¤
         dis_list = ['c', 'e', 'nr', 'o', 'r', 'u', 'y', 'x']
         all_list = [i.word for i in seg if i.flag not in dis_list]
         num_dict = Counter(all_list)
- 
-        logger.debug("in cutWord¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ªÇĞ´ÊºóµÄ·µ»Ø½á¹û¡ª¡ª¡ª¡ª¡ª¡ª{0}+++++++{1}".format(l, json.dumps(num_dict)))
+
+        logger.debug(
+            "in cutWordâ€”â€”â€”â€”â€”â€”â€”â€”åˆ‡è¯åçš„è¿”å›ç»“æœâ€”â€”â€”â€”â€”â€”{0}+++++++{1}".format(l, json.dumps(num_dict)))
         return l, num_dict
- 
+
     def nlp_cut_word_one(self, nlp0_data):
-        # ·´ĞòÁĞ»¯£¬×ª³É×Öµä
-        logger.debug("¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ªjson´¦ÀíÇ°¡ª¡ª¡ª¡ª¡ª¡ª{}".format(nlp0_data))
+        # ååºåˆ—åŒ–ï¼Œè½¬æˆå­—å…¸
+        logger.debug("â€”â€”â€”â€”â€”â€”â€”â€”jsonå¤„ç†å‰â€”â€”â€”â€”â€”â€”{}".format(nlp0_data))
         jsonObjs = json.loads(nlp0_data)
         logger.debug(
-            "in nlp_cut_word_one ¡ª¡ª¡ª¡ª¡ª¡ªjosn.loadsºóµÄ½á¹û¡ª¡ª¡ª¡ª¡ª¡ª{0}+++++++++++++{1}".format(jsonObjs, type(jsonObjs)))
-        # Èç¹û´æÔÚkeyÖµmessage£¬½øĞĞÇĞ´Ê
+            "in nlp_cut_word_one â€”â€”â€”â€”â€”â€”josn.loadsåçš„ç»“æœâ€”â€”â€”â€”â€”â€”{0}+++++++++++++{1}".format(jsonObjs, type(jsonObjs)))
+        # å¦‚æœå­˜åœ¨keyå€¼messageï¼Œè¿›è¡Œåˆ‡è¯
         if 'message' in jsonObjs.keys():
             li, num_dict = self.cutWord(jsonObjs['message'])
             jsonObjs['segments'] = li
             dic = dict()
             dic["TF_IDF"] = num_dict
-        logger.debug("in nlp_cut_word_one¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ªÇĞ´Ê´¦Àíºó¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª:{0}------------{1}".format(jsonObjs, dic))
+        logger.debug(
+            "in nlp_cut_word_oneâ€”â€”â€”â€”â€”â€”â€”â€”åˆ‡è¯å¤„ç†åâ€”â€”â€”â€”â€”â€”â€”â€”:{0}------------{1}".format(jsonObjs, dic))
         return jsonObjs, dic
- 
+
     def handlerData(self, data):
         nlp, tf_idf = self.nlp_cut_word_one(data)
-        # chattbody³öÄ£ĞÍÊ±¼ä
+        # chattbodyå‡ºæ¨¡å‹æ—¶é—´
         nlp['timeHandleEnd'] = str(int(round(time.time() * 1000)))
-        # logger.info("·ÅÈë"+RedisHandler.redis_push_db+"Êı¾İ"+json.dumps(nlp).decode('utf-8').encode('utf-8'))
-        nlp['operation'] = "PythonÇĞ´Ê´¦Àí"
+        # logger.info("æ”¾å…¥"+RedisHandler.redis_push_db+"æ•°æ®"+json.dumps(nlp).decode('utf-8').encode('utf-8'))
+        nlp['operation'] = "Pythonåˆ‡è¯å¤„ç†"
         nlp = json.dumps(nlp, ensure_ascii=False).replace(': ', ':')
         tf_idf['timeHandleEnd'] = str(int(round(time.time() * 1000)))
         return nlp, tf_idf
- 
-    # È¥ÖØ¸´µ¥´Ê¹¦ÄÜ
+
+    # å»é‡å¤å•è¯åŠŸèƒ½
     @staticmethod
     def distincWord(text_str):
         seg = list(set(text_str))
         seg.sort(key=text_str.index)
         return seg
- 
- 
+
+
 class ThreadDispatcher(object):
     def __init__(self):
         pass
- 
+
     def start(self):
         s = PubSubHandlerThread()
         s.start()
         s.join()
- 
- 
+
+
 if __name__ == '__main__':
     ThreadDispatcher().start()
