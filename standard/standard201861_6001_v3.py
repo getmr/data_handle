@@ -4,9 +4,9 @@
 # @Author: Zhangjintao
 # @Date  : 2018/6/1
 # @Desc  :
- 
+
 # -*- coding:utf-8 -*-
- 
+
 import logging
 import json
 import sys
@@ -14,177 +14,182 @@ import re
 import redis
 import os
 import threading
-# ======================ÅäÖÃµÄ±äÁ¿ begin=============================
+# ======================é…ç½®çš„å˜é‡ begin=============================
 CHANNEL_SUB = 'socket'
 CHANNEL_PUB = 'standard-py'
 REDIS_HOST = '117.78.35.174'
 REDIS_PORT = sys.argv[1]
 REDIS_PASSWORD = 123456
-REDIS_DB=0
+REDIS_DB = 0
 """
-alnum_to_chises       Êı×Ö×ªºº×Ö
-delPunctuae           È¥³ı±êµãÌØÊâ·ûºÅ
-chises_to_alnum       ºº×Ö×ªÊı×Ö
-remove_emotion        Emoji±íÇé´¦Àí
-num_to_ch            Êı×ÖÒ»Ò»×ªºº×Ö
+alnum_to_chises       æ•°å­—è½¬æ±‰å­—
+delPunctuae           å»é™¤æ ‡ç‚¹ç‰¹æ®Šç¬¦å·
+chises_to_alnum       æ±‰å­—è½¬æ•°å­—
+remove_emotion        Emojiè¡¨æƒ…å¤„ç†
+num_to_ch            æ•°å­—ä¸€ä¸€è½¬æ±‰å­—
 """
-method_list = ['delPunctuae', 'chises_to_alnum', 'remove_emotion']  # ÅäÖÃ±ê×¼»¯·½·¨°´ÏÈºóË³ĞòÔËĞĞ
- 
-# ======================ÅäÖÃµÄ±äÁ¿ end=============================
- 
-current_path =  os.getcwd()
-log =  current_path + os.path.sep + 'log'
+method_list = ['delPunctuae', 'chises_to_alnum',
+               'remove_emotion']  # é…ç½®æ ‡å‡†åŒ–æ–¹æ³•æŒ‰å…ˆåé¡ºåºè¿è¡Œ
+
+# ======================é…ç½®çš„å˜é‡ end=============================
+
+current_path = os.getcwd()
+log = current_path + os.path.sep + 'log'
 if not os.path.exists(log):
     os.mkdir(log)
- 
- 
+
+
 def getLogger():
     logger = logging.getLogger(__name__)
     logger.setLevel(level=logging.INFO)
-    handler = logging.FileHandler("{0}standard{1}.log".format(log + os.path.sep, REDIS_PORT))
+    handler = logging.FileHandler(
+        "{0}standard{1}.log".format(log + os.path.sep, REDIS_PORT))
     handler.setLevel(logging.INFO)
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    formatter = logging.Formatter(
+        '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     handler.setFormatter(formatter)
- 
+
     console = logging.StreamHandler()
     console.setLevel(logging.INFO)
- 
+
     logger.addHandler(handler)
     # logger.addHandler(console)
     return logger
- 
- 
+
+
 logger = getLogger()
- 
- 
+
+
 class StandardHandler(threading.Thread):
-    pool = redis.ConnectionPool(host=REDIS_HOST, port=REDIS_PORT, password=REDIS_PASSWORD, db=REDIS_DB)
+    pool = redis.ConnectionPool(
+        host=REDIS_HOST, port=REDIS_PORT, password=REDIS_PASSWORD, db=REDIS_DB)
     redisClient = redis.StrictRedis(connection_pool=pool)
- 
+
     def __init__(self):
         threading.Thread.__init__(self)
- 
+
     def run(self):
         p = StandardHandler.redisClient.pubsub()
         p.subscribe(CHANNEL_SUB)
         for message in p.listen():
             if message['type'] != 'message':
                 continue
-            logger.info('´Ó{0}ÆµµÀÈ¡³öµÄÊı¾İÊÇ:{1}'.format(CHANNEL_SUB, message['data']))
+            logger.info('ä»{0}é¢‘é“å–å‡ºçš„æ•°æ®æ˜¯:{1}'.format(
+                CHANNEL_SUB, message['data']))
             pushData = self.handler(message['data'])
             StandardHandler.redisClient.publish(CHANNEL_PUB, pushData)
-            logger.info('·ÅÈë{0}ÆµµÀÊı¾İ:{1}'.format(CHANNEL_PUB, pushData))
-            logger.info('Python±ê×¼»¯´¦ÀíÍê³É')
- 
+            logger.info('æ”¾å…¥{0}é¢‘é“æ•°æ®:{1}'.format(CHANNEL_PUB, pushData))
+            logger.info('Pythonæ ‡å‡†åŒ–å¤„ç†å®Œæˆ')
+
     def get_chatbody_message(self, message):
-        # ×ª×Öµä
+        # è½¬å­—å…¸
         jsonObjs = json.loads(message.decode())
- 
+
         if 'message' in jsonObjs:
             messageType = jsonObjs['messageType']
             value = jsonObjs['message']
             chatbody_newMessage = dispatcher(value, messageType)
             jsonObjs['message'] = chatbody_newMessage
-            logger.info("Python½ø¹ıÒ»ÁĞ±ê×¼»¯×îºó·Åµ½ChatboddyÖĞmessageµÄÊı¾İÎª:%s" %
+            logger.info("Pythonè¿›è¿‡ä¸€åˆ—æ ‡å‡†åŒ–æœ€åæ”¾åˆ°Chatboddyä¸­messageçš„æ•°æ®ä¸º:%s" %
                         chatbody_newMessage)
         # print("____endJsonobj____", jsonObjs)
         logger.debug(
-            "in get_chatbody_message¡ª¡ª¡ª¡ª¡ª¡ª´¦Àí½áÊøºóµÄÊı¾İ¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª{}".format(jsonObjs))
+            "in get_chatbody_messageâ€”â€”â€”â€”â€”â€”å¤„ç†ç»“æŸåçš„æ•°æ®â€”â€”â€”â€”â€”â€”â€”â€”{}".format(jsonObjs))
         return jsonObjs
- 
+
     def handler(self, data):
         nlp = self.get_chatbody_message(data)
-        nlp['operation'] = "python±ê×¼»¯"
+        nlp['operation'] = "pythonæ ‡å‡†åŒ–"
         nlp = json.dumps(nlp, ensure_ascii=False).replace(': ', ':')
         push_data = nlp
         return push_data
- 
- 
-# --------------------------------------------Êı×Ö×ªºº×Ö£¨µ¥¸öÒ»Ò»×ª£©begin------------------------------------
- 
- 
+
+
+# --------------------------------------------æ•°å­—è½¬æ±‰å­—ï¼ˆå•ä¸ªä¸€ä¸€è½¬ï¼‰begin------------------------------------
+
+
 def num2chinese(num):
     num_list = list(num)
     num_dict = {
-        '0': 'Áã',
-        '1': 'Ò»',
-        '2': '¶ş',
-        '3': 'Èı',
-        '4': 'ËÄ',
-        '5': 'Îå',
-        '6': 'Áù',
-        '7': 'Æß',
-        '8': '°Ë',
-        '9': '¾Å'
+        '0': 'é›¶',
+        '1': 'ä¸€',
+        '2': 'äºŒ',
+        '3': 'ä¸‰',
+        '4': 'å››',
+        '5': 'äº”',
+        '6': 'å…­',
+        '7': 'ä¸ƒ',
+        '8': 'å…«',
+        '9': 'ä¹'
     }
     num_ch_list = [num_dict[i] for i in num_list if i in num_dict]
     str_num = ''.join(num_ch_list)
     return str_num
- 
- 
-# ÕıÔòÆ¥ÅäÔÙ½«Æ¥ÅäÄÚÈİ×ª³Éºº×Ö
+
+
+# æ­£åˆ™åŒ¹é…å†å°†åŒ¹é…å†…å®¹è½¬æˆæ±‰å­—
 def num_2_ch(matched):
     value = matched.group('value')
- 
+
     return str(num2chinese(value))
- 
- 
-# Êı×Ö×ªÎÄ×Ö
+
+
+# æ•°å­—è½¬æ–‡å­—
 def num_to_ch(text_str):
-    print("________½øÈëch2num_______", text_str, type(text_str))
+    print("________è¿›å…¥ch2num_______", text_str, type(text_str))
     text_str = re.sub(
         "(?P<value>\d+)", num_2_ch, text_str)
     print("________chiese2alnum______", text_str)
     return text_str
- 
-# --------------------------------------------Êı×Ö×ªºº×Ö£¨µ¥¸öÒ»Ò»×ª£©end------------------------------------
- 
- 
-# --------------------------------------------Ê±¼äÃ°ºÅÎÊÌâ begin------------------------------------
- 
- 
+
+# --------------------------------------------æ•°å­—è½¬æ±‰å­—ï¼ˆå•ä¸ªä¸€ä¸€è½¬ï¼‰end------------------------------------
+
+
+# --------------------------------------------æ—¶é—´å†’å·é—®é¢˜ begin------------------------------------
+
+
 def time_colon(text_str):
     bold = re.compile(r'(\d):(\d)')
-    text_str = bold.sub(r'\1µã\2', text_str)
+    text_str = bold.sub(r'\1ç‚¹\2', text_str)
     return text_str
- 
-# --------------------------------------------Ê±¼äÃ°ºÅÎÊÌâ end------------------------------------
- 
-# --------------------------------È¥³ı±êµã·ûºÅ begin-----------------------
- 
- 
+
+# --------------------------------------------æ—¶é—´å†’å·é—®é¢˜ end------------------------------------
+
+# --------------------------------å»é™¤æ ‡ç‚¹ç¬¦å· begin-----------------------
+
+
 def delPunctuae(text_str):
-    # È¥³ı±êµã·ûºÅ
+    # å»é™¤æ ‡ç‚¹ç¬¦å·
     r = """[\s\n]+"""
     text = re.sub(r, '', text_str)
-    logger.debug("in delPunctuae ¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ªÈ¥³ı±êµã·ûºÅºóµÄÊı¾İ¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª{}".format(text))
+    logger.debug("in delPunctuae â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”å»é™¤æ ‡ç‚¹ç¬¦å·åçš„æ•°æ®â€”â€”â€”â€”â€”â€”â€”â€”{}".format(text))
     return text.strip()
- 
-# ---------------------------------È¥³ı±êµã·ûºÅ end -----------------------------------
- 
- 
-# ---------------------------------Êı×Ö×ªºº×Ö begin---------------------
- 
+
+# ---------------------------------å»é™¤æ ‡ç‚¹ç¬¦å· end -----------------------------------
+
+
+# ---------------------------------æ•°å­—è½¬æ±‰å­— begin---------------------
+
 import types
- 
- 
+
+
 class NotIntegerError(Exception):
     pass
- 
- 
+
+
 class OutOfRangeError(Exception):
     pass
- 
- 
-_MAPPING = (u'Áã', u'Ò»', u'¶ş', u'Èı', u'ËÄ', u'Îå', u'Áù', u'Æß', u'°Ë', u'¾Å',)
-_P0 = (u'', u'Ê®', u'°Ù', u'Ç§',)
+
+
+_MAPPING = (u'é›¶', u'ä¸€', u'äºŒ', u'ä¸‰', u'å››', u'äº”', u'å…­', u'ä¸ƒ', u'å…«', u'ä¹',)
+_P0 = (u'', u'å', u'ç™¾', u'åƒ',)
 _S4, _S8, _S16 = 10 ** 4, 10 ** 8, 10 ** 16
 _MIN, _MAX = 0, 9999999999999999
- 
- 
+
+
 def num_to_chinese4(num):
     '''
-    ×ª»»[0, 10000)Ö®¼äµÄ°¢À­²®Êı×Ö
+    è½¬æ¢[0, 10000)ä¹‹é—´çš„é˜¿æ‹‰ä¼¯æ•°å­—
     '''
     assert (0 <= num and num < _S4)
     if num < 10:
@@ -195,18 +200,18 @@ def num_to_chinese4(num):
             lst.append(num % 10)
             num = num / 10
         lst.append(num)
-        c = len(lst)  # Î»Êı
+        c = len(lst)  # ä½æ•°
         result = u''
- 
+
         for idx, val in enumerate(lst):
             if val != 0:
                 result += _P0[idx] + _MAPPING[val]
                 if idx < c - 1 and lst[idx + 1] == 0:
-                    result += u'Áã'
- 
-        return result[::-1].replace(u'Ò»Ê®', u'Ê®')
- 
- 
+                    result += u'é›¶'
+
+        return result[::-1].replace(u'ä¸€å', u'å')
+
+
 def _to_chinese8(num):
     assert (num < _S8)
     to4 = num_to_chinese4
@@ -216,166 +221,166 @@ def _to_chinese8(num):
         mod = _S4
         high, low = num / mod, num % mod
         if low == 0:
-            return to4(high) + u'Íò'
+            return to4(high) + u'ä¸‡'
         else:
             if low < _S4 / 10:
-                return to4(high) + u'ÍòÁã' + to4(low)
+                return to4(high) + u'ä¸‡é›¶' + to4(low)
             else:
-                return to4(high) + u'Íò' + to4(low)
- 
- 
+                return to4(high) + u'ä¸‡' + to4(low)
+
+
 def _to_chinese16(num):
     assert (num < _S16)
     to8 = _to_chinese8
     mod = _S8
     high, low = num / mod, num % mod
     if low == 0:
-        return to8(high) + u'ÒÚ'
+        return to8(high) + u'äº¿'
     else:
         if low < _S8 / 10:
-            return to8(high) + u'ÒÚÁã' + to8(low)
+            return to8(high) + u'äº¿é›¶' + to8(low)
         else:
-            return to8(high) + u'ÒÚ' + to8(low)
- 
- 
+            return to8(high) + u'äº¿' + to8(low)
+
+
 def to_chinese(num):
     if type(num) != types.IntType and type(num) != types.LongType:
         raise NotIntegerError(u'%s is not a integer.' % num)
     if num < _MIN or num > _MAX:
         raise OutOfRangeError(u'%d out of range[%d, %d)' % (num, _MIN, _MAX))
- 
+
     if num < _S4:
         return num_to_chinese4(num)
     elif num < _S8:
         return _to_chinese8(num)
     else:
         return _to_chinese16(num)
- 
- 
+
+
 def to_chinese_(matched):
     value = int(matched.group('value'))
     # print type(value)
     # print to_chinese(value)
     return str(to_chinese(value).encode('utf-8'))
- 
- 
+
+
 def alnum_to_chises(text_str):
     text_str = re.sub('(?P<value>\d+)', to_chinese_, text_str)
     return text_str
- 
- 
-# ----------------------------------------------------------Êı×Ö×ªºº×Ö end------------------
- 
- 
-# ---------------------------------------------ºº×Ö×ªÊı×Ö begin---------------------------
+
+
+# ----------------------------------------------------------æ•°å­—è½¬æ±‰å­— end------------------
+
+
+# ---------------------------------------------æ±‰å­—è½¬æ•°å­— begin---------------------------
 CN_NUM = {
-    '©–': 0,
-    'Ò»': 1,
-    '¶ş': 2,
-    'Èı': 3,
-    'ËÄ': 4,
-    'Îå': 5,
-    'Áù': 6,
-    'Æß': 7,
-    '°Ë': 8,
-    '¾Å': 9,
- 
-    'Áã': 0,
-    'Ò¼': 1,
-    '·¡': 2,
-    'Èş': 3,
-    'ËÁ': 4,
-    'Îé': 5,
-    'Â½': 6,
-    'Æâ': 7,
-    '°Æ': 8,
-    '¾Á': 9,
- 
-    'Ù@': 2,
-    'Á½': 2,
+    'ã€‡': 0,
+    'ä¸€': 1,
+    'äºŒ': 2,
+    'ä¸‰': 3,
+    'å››': 4,
+    'äº”': 5,
+    'å…­': 6,
+    'ä¸ƒ': 7,
+    'å…«': 8,
+    'ä¹': 9,
+
+    'é›¶': 0,
+    'å£¹': 1,
+    'è´°': 2,
+    'å': 3,
+    'è‚†': 4,
+    'ä¼': 5,
+    'é™†': 6,
+    'æŸ’': 7,
+    'æŒ': 8,
+    'ç–': 9,
+
+    'è²®': 2,
+    'ä¸¤': 2,
 }
 CN_UNIT = {
-    'Ê®': 10,
-    'Ê°': 10,
-    '°Ù': 100,
-    '°Û': 100,
-    'Ç§': 1000,
-    'Çª': 1000,
-    'Íò': 10000,
-    'Èf': 10000,
-    'ÒÚ': 100000000,
-    'ƒ|': 100000000,
-    'Õ×': 1000000000000,
+    'å': 10,
+    'æ‹¾': 10,
+    'ç™¾': 100,
+    'ä½°': 100,
+    'åƒ': 1000,
+    'ä»Ÿ': 1000,
+    'ä¸‡': 10000,
+    'è¬': 10000,
+    'äº¿': 100000000,
+    'å„„': 100000000,
+    'å…†': 1000000000000,
 }
- 
- 
+
+
 def cn2dig(cn):
-    res = re.search(r'[Ê®Ê°°Ù°ÛÇ§ÇªÍòÈfÒÚƒ|Õ×]', cn)
- 
+    res = re.search(r'[åæ‹¾ç™¾ä½°åƒä»Ÿä¸‡è¬äº¿å„„å…†]', cn)
+
     # print(res)
     lcn = list(cn)
     if res is not None:
- 
+
         # print(lcn)
-        unit = 0  # µ±Ç°µÄµ¥Î»
-        ldig = []  # ÁÙÊ±Êı×é
- 
+        unit = 0  # å½“å‰çš„å•ä½
+        ldig = []  # ä¸´æ—¶æ•°ç»„
+
         while lcn:
             cndig = lcn.pop()
- 
+
             if CN_UNIT.get(cndig):
                 unit = CN_UNIT.get(cndig)
                 if unit == 10000:
-                    ldig.append('w')  # ±êÊ¾ÍòÎ»
+                    ldig.append('w')  # æ ‡ç¤ºä¸‡ä½
                     unit = 1
                 elif unit == 100000000:
-                    ldig.append('y')  # ±êÊ¾ÒÚÎ»
+                    ldig.append('y')  # æ ‡ç¤ºäº¿ä½
                     unit = 1
-                elif unit == 1000000000000:  # ±êÊ¾Õ×Î»
+                elif unit == 1000000000000:  # æ ‡ç¤ºå…†ä½
                     ldig.append('z')
                     unit = 1
- 
+
                 continue
- 
+
             else:
                 dig = CN_NUM.get(cndig)
- 
+
                 if unit:
                     dig = dig * unit
                     unit = 0
- 
+
                 ldig.append(dig)
- 
-        if unit == 10:  # ´¦Àí10-19µÄÊı×Ö
+
+        if unit == 10:  # å¤„ç†10-19çš„æ•°å­—
             ldig.append(10)
- 
+
         ret = 0
         tmp = 0
- 
+
         while ldig:
             x = ldig.pop()
- 
+
             if x == 'w':
                 tmp *= 10000
                 ret += tmp
                 tmp = 0
- 
+
             elif x == 'y':
                 tmp *= 100000000
                 ret += tmp
                 tmp = 0
- 
+
             elif x == 'z':
                 tmp *= 1000000000000
                 ret += tmp
                 tmp = 0
- 
+
             else:
                 tmp += x
- 
+
         ret += tmp
         return ret
- 
+
     else:
         li = []
         if len(lcn) > 1:
@@ -387,9 +392,9 @@ def cn2dig(cn):
         else:
             if lcn[0] in CN_NUM:
                 return CN_NUM[lcn[0]]
- 
- 
-# ÕıÔòÆ¥ÅäÔÙ½«Æ¥ÅäÄÚÈİ×ª³Éºº×Ö
+
+
+# æ­£åˆ™åŒ¹é…å†å°†åŒ¹é…å†…å®¹è½¬æˆæ±‰å­—
 def to_chinese_two(matched):
     value = matched.group('value')
     # print value
@@ -397,60 +402,60 @@ def to_chinese_two(matched):
     # print value.encode('utf-8')
     # print to_chinese(value)
     return str(cn2dig(value))
- 
- 
-# ºº×Ö×ªÊı×Ö
+
+
+# æ±‰å­—è½¬æ•°å­—
 def chises_to_alnum(text_str):
-    # print("________½øÈëch2num_______",text_str)
+    # print("________è¿›å…¥ch2num_______",text_str)
     text_str = re.sub(
-        "(?P<value>[Ò»¶şÈıËÄÎåÁùÆß°Ë¾ÅÊ®Ò¼·¡ÈşËÁÎéÂ½Æâ°Æ¾ÁÊ°Ù@Á½°ÙÇ§ÍòÒÚÁã©–]+)", to_chinese_two, text_str)
+        "(?P<value>[ä¸€äºŒä¸‰å››äº”å…­ä¸ƒå…«ä¹åå£¹è´°åè‚†ä¼é™†æŸ’æŒç–æ‹¾è²®ä¸¤ç™¾åƒä¸‡äº¿é›¶ã€‡]+)", to_chinese_two, text_str)
     # print("________chiese2alnum______", text_str)
     return text_str
- 
- 
-# ----------------------------------------------ºº×Ö×ªÊı×Ö end -------------------------------------------
- 
- 
-# -----------------------------------Emoji±íÇé´¦Àí begin -----------------------
- 
+
+
+# ----------------------------------------------æ±‰å­—è½¬æ•°å­— end -------------------------------------------
+
+
+# -----------------------------------Emojiè¡¨æƒ…å¤„ç† begin -----------------------
+
 highpoints = re.compile(u'[\uD800-\uDBFF][\uDC00-\uDFFF]')
- 
- 
+
+
 def remove_emotion(a):
     nickname = highpoints.sub(u'', a)
     return nickname
- 
-# -----------------------------------Emoji±íÇé´¦Àí end -----------------------
- 
- 
-# =========================µ÷ÓÃ±ê×¼»¯´¦Àíº¯Êıµ÷¶ÈÆ÷  begin =============================
+
+# -----------------------------------Emojiè¡¨æƒ…å¤„ç† end -----------------------
+
+
+# =========================è°ƒç”¨æ ‡å‡†åŒ–å¤„ç†å‡½æ•°è°ƒåº¦å™¨  begin =============================
 result = ""
- 
- 
+
+
 def dispatcher(result, messageType):
     for method in method_list:
         # print(method)
         if '11' == str(messageType):
             break
         result = eval(method)(result)
-        logger.info("Pythonµ÷ÓÃ·½·¨%s±ê×¼»¯Êı¾İ:%s" %
+        logger.info("Pythonè°ƒç”¨æ–¹æ³•%sæ ‡å‡†åŒ–æ•°æ®:%s" %
                     (eval(method).__name__, result))
- 
+
     return result
- 
-# =========================µ÷ÓÃ±ê×¼»¯´¦Àíº¯Êıµ÷¶ÈÆ÷  end =============================
- 
- 
+
+# =========================è°ƒç”¨æ ‡å‡†åŒ–å¤„ç†å‡½æ•°è°ƒåº¦å™¨  end =============================
+
+
 class ThreadDispatcher(object):
     def __init__(self):
         pass
- 
+
     def start(self):
         s = StandardHandler()
         s.start()
         logger.info("------------------- start is OK -----------------")
         s.join()
- 
- 
+
+
 if __name__ == '__main__':
     ThreadDispatcher().start()
