@@ -73,4 +73,4 @@ if __name__ == "__main__":
         print(item)
         with open('北京信息精选.txt', 'a') as f:
             item = item + '\n'
-
+            f.write(item)
