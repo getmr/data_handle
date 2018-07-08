@@ -18,7 +18,8 @@ session = HTMLSession()
 response = session.get("http://www.lvmama.com/lvyou/wenda/")
 all_elements = response.html.xpath("//div[2]/div/div/a|//div[3]/div/div/a")
 print(all_elements)
-all_links_pls = [(i.xpath("./a/@href")[0], i.xpath("./a/text()")[0]) for i in all_elements]
+all_links_pls = [(i.xpath("./a/@href")[0], i.xpath("./a/text()")[0])
+                 for i in all_elements]
 print(all_links_pls)
 
 headers = {
@@ -43,6 +44,7 @@ class LvMama(object):
     save：储存信息
     run：启动程序
     """
+
     def __init__(self, hot_base_url, new_base_url):
         self.hot_base_url = hot_base_url
         self.new_base_url = new_base_url
@@ -72,10 +74,12 @@ class LvMama(object):
             # 构造存储的样本
             tags = i.xpath("./div/a/text()")
             tags.pop(0)
-            text = "{0}    {1}    {2}".format(i.xpath("./p/span/text()")[0],i.xpath("./p/a/text()")[0], "    ".join(tags))
+            text = "{0}    {1}    {2}".format(
+                i.xpath("./p/span/text()")[0], i.xpath("./p/a/text()")[0], "    ".join(tags))
 
             # 构造mongodb的数据
-            mongo_dict = {"palce": i.xpath("./p/span/text()")[0], "message": text, "tag": "    ".join(tags)}
+            mongo_dict = {"palce": i.xpath(
+                "./p/span/text()")[0], "message": text, "tag": "    ".join(tags)}
             print("mongodb:", mongo_dict)
             # 写入mongodb的lvmama数据库
             # db.lvmama.insert(mongo_dict)
@@ -88,7 +92,7 @@ class LvMama(object):
 
     def __del__(self):
         self.file.close()
-        
+
     def run(self, num, pl):
         pl = re.sub(r'/', '', pl)
         pl_path = lm_path + os.path.sep + pl
@@ -136,4 +140,3 @@ if __name__ == '__main__':
         pl = link[1]
         print(num, pl)
         lvMama.run(num, pl)
-
