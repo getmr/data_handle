@@ -3,38 +3,38 @@
 import sys
 reload(sys)
 sys.setdefaultencoding('utf-8')
- 
+
 from shutil import copy
 __author__ = 'wangg'
- 
+
 import os
 import re
 import circleDir
- 
+
 """
-ĞèÇó:ÔÚdirvalueÄ¿Â¼ÏÂÓĞ¶à¸öÅÀÈ¡µÄÑù±¾Êı¾İ   Ã¿¸öÑù±¾Êı¾İ¶¼ÊÇÒ»ĞĞ²¢ÇÒÊÇÎÊÌâ ºóÃæÊÇ4¸ö¿Õ¸ñÈ»ºóºóÃæÊÇÕâ¸öÎÊÌâµÄËùÓĞ±êÇ©(±êÇ©Ö®¼äÓÃ¿Õ¸ñ¸ô¿ª)
-    Òª×öµÄ¾ÍÊÇ¿´ÕâĞ©Ñù±¾ÎÄ¼şÖĞ±êÇ©Èç¹ûÊÇtag_strÖĞµÄÕâĞ©ÄÇÃ´ÕâĞ©Ñù±¾ÎÄ¼ş¾ÍÊÇÓĞÓÃµÄÒª´ÓdirvalueÄ¿Â¼ÖĞ½«ÕâĞ©ÓĞÓÃµÄÎÄ¼şÌáÈ¡µ½Ò»¸öĞÂÄ¿Â¼ÖĞdirvalue414ÖĞ²¢´ÓÔ­À´Ä¿Â¼dirvalueÖĞÉ¾³ı
+éœ€æ±‚:åœ¨dirvalueç›®å½•ä¸‹æœ‰å¤šä¸ªçˆ¬å–çš„æ ·æœ¬æ•°æ®   æ¯ä¸ªæ ·æœ¬æ•°æ®éƒ½æ˜¯ä¸€è¡Œå¹¶ä¸”æ˜¯é—®é¢˜ åé¢æ˜¯4ä¸ªç©ºæ ¼ç„¶ååé¢æ˜¯è¿™ä¸ªé—®é¢˜çš„æ‰€æœ‰æ ‡ç­¾(æ ‡ç­¾ä¹‹é—´ç”¨ç©ºæ ¼éš”å¼€)
+    è¦åšçš„å°±æ˜¯çœ‹è¿™äº›æ ·æœ¬æ–‡ä»¶ä¸­æ ‡ç­¾å¦‚æœæ˜¯tag_strä¸­çš„è¿™äº›é‚£ä¹ˆè¿™äº›æ ·æœ¬æ–‡ä»¶å°±æ˜¯æœ‰ç”¨çš„è¦ä»dirvalueç›®å½•ä¸­å°†è¿™äº›æœ‰ç”¨çš„æ–‡ä»¶æå–åˆ°ä¸€ä¸ªæ–°ç›®å½•ä¸­dirvalue414ä¸­å¹¶ä»åŸæ¥ç›®å½•dirvalueä¸­åˆ é™¤
  
-    ÌáÈ¡ÓĞÓÃÎÄ¼ş »¹Ã»ÓĞ½«±êÇ©×ª»»Îª¶ÔÓ¦µÄÊı×Ö
+    æå–æœ‰ç”¨æ–‡ä»¶ è¿˜æ²¡æœ‰å°†æ ‡ç­¾è½¬æ¢ä¸ºå¯¹åº”çš„æ•°å­—
 """
- 
+
 dirValue = '/root/Data/Data5'
 circleObj = circleDir.CircleDir()
 dir_list = circleObj.circle_dir(dirValue)
- 
+
 # dir_list = os.listdir(dirValue)
 taglists = []
 tag_str = """
-»ğ³µ   »ğ³µÆ±   »ğ³µÕ¾  ¸ßÌú  ÈíÎÔ  Ó²ÎÔ  Ó²×ù  Èí×ù  ÉÏÆÌ ÏÂÆÌ  ÖĞÆÌ   Ì¨Ìú
-»ú³¡ »úÆ±  »ú½¨·Ñ  »ú½¨ µÇ»úÅÆ  º½°à  º½¶Î  ²ÕÎ»  ºò»úÌü  µÇ¼ÇÊ±¼ä  µÇ»úÅÆ  µÇ»ú¿Ú  ÀÈÇÅ  ÅÜµÀ  º½Ë¾  ĞĞÀî×ªÅÌ  ÉÌÎñ²Õ ¾­¼Ã²Õ  ÃâË°µê  º£¹Ø ×ª»ú ·É»ú º½¿Õ¹«Ë¾ Ãñº½ ¿Õ¿Í
-¾Æµê  ·¿¼ä  µ¥ÈË¼ä  °ü¼ä  Ë«ÈË¼ä ×ÜÍ³Ì×¼ä   Á¬Ëø ×¡ËŞ  ´ó´²·¿  ·¿¼äÊıÁ¿  Èë×¡  ¿ì½İ ¶©¾Æµê ¾ÆµêÔ¤¶¨ll
+ç«è½¦   ç«è½¦ç¥¨   ç«è½¦ç«™  é«˜é“  è½¯å§  ç¡¬å§  ç¡¬åº§  è½¯åº§  ä¸Šé“º ä¸‹é“º  ä¸­é“º   å°é“
+æœºåœº æœºç¥¨  æœºå»ºè´¹  æœºå»º ç™»æœºç‰Œ  èˆªç­  èˆªæ®µ  èˆ±ä½  å€™æœºå…  ç™»è®°æ—¶é—´  ç™»æœºç‰Œ  ç™»æœºå£  å»Šæ¡¥  è·‘é“  èˆªå¸  è¡Œæè½¬ç›˜  å•†åŠ¡èˆ± ç»æµèˆ±  å…ç¨åº—  æµ·å…³ è½¬æœº é£æœº èˆªç©ºå…¬å¸ æ°‘èˆª ç©ºå®¢
+é…’åº—  æˆ¿é—´  å•äººé—´  åŒ…é—´  åŒäººé—´ æ€»ç»Ÿå¥—é—´   è¿é” ä½å®¿  å¤§åºŠæˆ¿  æˆ¿é—´æ•°é‡  å…¥ä½  å¿«æ· è®¢é…’åº— é…’åº—é¢„å®šll
 """
 os.mkdir(dirValue + '/' + "dataNew")
 os.mkdir(dirValue + '/' + "others")
- 
+
 dirValue414 = dirValue + '/' + "dataNew"
 dirvalueOthers = dirValue + "/" + "others"
- 
+
 txt_list = []
 for dirone in dir_list:
     with open(dirone, 'r') as f:
@@ -44,34 +44,33 @@ for dirone in dir_list:
             tag = match.group(1).strip()
             tag_terms_list = tag.split()
             # print tag_terms_list
- 
+
             exit_flag = False
             for tag_terms in tag_terms_list:
                 # taglists.append(tag_terms)
- 
+
                 tag_str_list = tag_str.split()
                 for tagstr in tag_str_list:
                     if tagstr in tag_terms:
                         txt_list.append(dirone)
-                        copy(dirone, dirValue414 + "/" + os.path.split(dirone)[1])
+                        copy(dirone, dirValue414 + "/" +
+                             os.path.split(dirone)[1])
                         os.remove(dirone)
                         exit_flag = True
                         break
- 
+
                 if exit_flag:
                     break
- 
+
             if not exit_flag:
                 copy(dirone, dirvalueOthers + "/" + os.path.split(dirone)[1])
                 os.remove(dirone)
- 
+
                 # if tag_terms in tag_str:
                 #     txt_list.append(dirone)
                 #     copy(dirValue + "/" + dirone, dirValue414+"/"+dirone)
                 #     os.remove(dirValue + "/" + dirone)
                 #     break
- 
- 
- 
- 
+
+
 # print len(txt_list)

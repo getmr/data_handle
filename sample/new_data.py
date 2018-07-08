@@ -3,16 +3,16 @@
 # @File  : new_data.py
 # @Author: Zhangjintao
 # @Date  : 2018/6/1
-# @Desc  : ĞŞ¸ÄÎÄ±¾±êÇ©
+# @Desc  : ä¿®æ”¹æ–‡æœ¬æ ‡ç­¾
 import re
 import os
 import time
- 
- 
+
+
 class NewData(object):
     def __init__(self, base_path):
         self.base_path = base_path
- 
+
     def read_data(self, file_name, dir):
         path = self.base_path + os.path.sep + dir + os.path.sep + file_name
         print(file_name)
@@ -23,7 +23,7 @@ class NewData(object):
                 data = re.sub(r'\s{8}\d', '', b).strip()
         except:
             print("_____________")
-            return None,0
+            return None, 0
         s1 = re.search(r1, data)
         s2 = re.search(r2, data)
         s3 = re.search(r3, data)
@@ -43,7 +43,7 @@ class NewData(object):
         else:
             new_data = "{0}        {1}".format(data, 0)
             return new_data, 0
- 
+
     def save_data(self, new_data, dir, data):
         bs_path = os.getcwd()
         path = bs_path + os.path.sep + dir + os.path.sep
@@ -51,41 +51,44 @@ class NewData(object):
             os.mkdir(path)
         with open(path + os.path.sep + data, "w", encoding="utf-8") as f:
             f.write(new_data)
- 
+
     def run(self):
-        # »ñÈ¡×ÓÄ¿Â¼
+        # è·å–å­ç›®å½•
         dir_list = os.listdir(self.base_path)
         print(dir_list)
-        # ¶ÁÈ¡×ÓÄ¿Â¼ÏÂµÄËùÓĞÎÄ¼şÃû£¬»ñµÃÁĞ±í
+        # è¯»å–å­ç›®å½•ä¸‹çš„æ‰€æœ‰æ–‡ä»¶åï¼Œè·å¾—åˆ—è¡¨
         for dir in dir_list:
             # print(dir)
             print(self.base_path + os.sep + dir)
             time.sleep(2)
-            files_list = [filename for a, b, filename in os.walk(self.base_path + os.sep + dir)]
+            files_list = [filename for a, b, filename in os.walk(
+                self.base_path + os.sep + dir)]
             print("file_list", files_list[0])
- 
+
             for data in files_list[0]:
                 time.sleep(5)
-                # ¶ÁÈ¡Êı¾İ
+                # è¯»å–æ•°æ®
                 # print(data)
                 new_data, num = self.read_data(data, dir)
                 if new_data is None:
                     continue
-                # ½«ĞÂµÄÊı¾İ´æÈëµ½ÎÄ¼şÖĞ
+                # å°†æ–°çš„æ•°æ®å­˜å…¥åˆ°æ–‡ä»¶ä¸­
                 self.save_data(new_data, str(num), data)
- 
- 
+
+
 if __name__ == '__main__':
     base_path = "/Users/zhangjintao/Desktop/dataNew"
-    classify_list1 = ['·É»ú', '»úÆ±', 'Âò·É»úÆ±', '×ø·É»ú', '»ú³¡', 'µÇ»úÅÆ', 'µÇ»ú', 'µÇ»ú¿Ú', 'º½°à', '²ÖÎ»', 'µÇ»úÊ±¼ä', '¶©»úÆ±']
- 
-    r1 = r"·É»ú|»úÆ±|Âò·É»úÆ±|×ø·É»ú|»ú³¡|µÇ»úÅÆ|µÇ»ú|µÇ»ú¿Ú|º½°à|²ÖÎ»|µÇ»úÊ±¼ä|¶©»úÆ±"
-    r2 = r"»ğ³µ|×ø»ğ³µ|¸ßÌú|Ó²×ù|ÈíÎÔ|ºÍĞ³ºÅ|¸´ĞËºÅ|Ó²ÎÔ|»ğ³µÕ¾|»ğ³µÆ±"
-    r3 = r"¾Æµê|×¡ËŞ|´ó´²·¿|µ¥¼ä|×ÜÍ³Ì×·¿"
-    r4 = r"³ö²îµ¥|³ö²î|²îµ¥"
- 
-    classify_list2 = ['»ğ³µ', '×ø»ğ³µ', '¸ßÌú', 'Ó²×ù', 'ÈíÎÔ', 'ºÍĞ³ºÅ', '¸´ĞËºÅ', 'Ó²ÎÔ', '»ğ³µÕ¾', '»ğ³µÆ±']
-    classify_list3 = ['¾Æµê', '×¡ËŞ', '´ó´²·¿', 'µ¥¼ä', '×ÜÍ³Ì×·¿']
-    classify_list4 = ['³ö²îµ¥', '³ö²î', '²îµ¥']
+    classify_list1 = ['é£æœº', 'æœºç¥¨', 'ä¹°é£æœºç¥¨', 'åé£æœº', 'æœºåœº',
+                      'ç™»æœºç‰Œ', 'ç™»æœº', 'ç™»æœºå£', 'èˆªç­', 'ä»“ä½', 'ç™»æœºæ—¶é—´', 'è®¢æœºç¥¨']
+
+    r1 = r"é£æœº|æœºç¥¨|ä¹°é£æœºç¥¨|åé£æœº|æœºåœº|ç™»æœºç‰Œ|ç™»æœº|ç™»æœºå£|èˆªç­|ä»“ä½|ç™»æœºæ—¶é—´|è®¢æœºç¥¨"
+    r2 = r"ç«è½¦|åç«è½¦|é«˜é“|ç¡¬åº§|è½¯å§|å’Œè°å·|å¤å…´å·|ç¡¬å§|ç«è½¦ç«™|ç«è½¦ç¥¨"
+    r3 = r"é…’åº—|ä½å®¿|å¤§åºŠæˆ¿|å•é—´|æ€»ç»Ÿå¥—æˆ¿"
+    r4 = r"å‡ºå·®å•|å‡ºå·®|å·®å•"
+
+    classify_list2 = ['ç«è½¦', 'åç«è½¦', 'é«˜é“', 'ç¡¬åº§',
+                      'è½¯å§', 'å’Œè°å·', 'å¤å…´å·', 'ç¡¬å§', 'ç«è½¦ç«™', 'ç«è½¦ç¥¨']
+    classify_list3 = ['é…’åº—', 'ä½å®¿', 'å¤§åºŠæˆ¿', 'å•é—´', 'æ€»ç»Ÿå¥—æˆ¿']
+    classify_list4 = ['å‡ºå·®å•', 'å‡ºå·®', 'å·®å•']
     newData = NewData(base_path)
     newData.run()

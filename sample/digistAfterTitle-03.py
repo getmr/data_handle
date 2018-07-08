@@ -1,26 +1,24 @@
 #! /usr/bin/env python
 # -*- coding:UTF-8 -*-
 __author__ = 'wangg'
- 
+
 import os
 import re
- 
-keyword_lists = [{'2': '»ğ³µ   »ğ³µÆ±   »ğ³µÕ¾  ¸ßÌú  ÈíÎÔ  Ó²ÎÔ  Ó²×ù  Èí×ù  ÉÏÆÌ ÏÂÆÌ  ÖĞÆÌ   Ì¨Ìú'}, {"1": '»ú³¡ »úÆ±  »ú½¨·Ñ  »ú½¨ µÇ»úÅÆ  º½°à  º½°à  ²ÕÎ»  ºò»úÌü  µÇ¼ÇÊ±¼ä  µÇ»úÅÆ  µÇ»ú¿Ú  ÀÈÇÅ  ÅÜµÀ  º½Ë¾  ĞĞÀî×ªÅÌ  ÉÌÎñ²Õ ¾­¼Ã²Õ  ÃâË°µê  º£¹Ø ×ª»ú ·É»ú º½¿Õ¹«Ë¾ Ãñº½ ¿Õ¿Í'}, {'3': '¾Æµê  ·¿¼ä  µ¥ÈË¼ä  °ü¼ä  Ë«ÈË¼ä ×ÜÍ³Ì×¼ä   Á¬Ëø ×¡ËŞ  ´ó´²·¿  ·¿¼äÊıÁ¿  Èë×¡  ¿ì½İ ¶©¾Æµê ¾ÆµêÔ¤¶¨'}]
- 
- 
+
+keyword_lists = [{'2': 'ç«è½¦   ç«è½¦ç¥¨   ç«è½¦ç«™  é«˜é“  è½¯å§  ç¡¬å§  ç¡¬åº§  è½¯åº§  ä¸Šé“º ä¸‹é“º  ä¸­é“º   å°é“'}, {
+    "1": 'æœºåœº æœºç¥¨  æœºå»ºè´¹  æœºå»º ç™»æœºç‰Œ  èˆªç­  èˆªç­  èˆ±ä½  å€™æœºå…  ç™»è®°æ—¶é—´  ç™»æœºç‰Œ  ç™»æœºå£  å»Šæ¡¥  è·‘é“  èˆªå¸  è¡Œæè½¬ç›˜  å•†åŠ¡èˆ± ç»æµèˆ±  å…ç¨åº—  æµ·å…³ è½¬æœº é£æœº èˆªç©ºå…¬å¸ æ°‘èˆª ç©ºå®¢'}, {'3': 'é…’åº—  æˆ¿é—´  å•äººé—´  åŒ…é—´  åŒäººé—´ æ€»ç»Ÿå¥—é—´   è¿é” ä½å®¿  å¤§åºŠæˆ¿  æˆ¿é—´æ•°é‡  å…¥ä½  å¿«æ· è®¢é…’åº— é…’åº—é¢„å®š'}]
+
+
 """
-ĞèÇó:Òª½«extractFile-02ÕâÒ»²½ÌáÈ¡³öÀ´µÄÓĞÓÃµÄÑù±¾ÎÄ¼ş  ÎÊÌâºóÃæµÄ±êÇ© »»³É¶ÔÓ¦µÄÊı×Ö   2´ú±í»ğ³µ  1 ·É»ú  3 ¾ÆµêÏà¹Ø
+éœ€æ±‚:è¦å°†extractFile-02è¿™ä¸€æ­¥æå–å‡ºæ¥çš„æœ‰ç”¨çš„æ ·æœ¬æ–‡ä»¶  é—®é¢˜åé¢çš„æ ‡ç­¾ æ¢æˆå¯¹åº”çš„æ•°å­—   2ä»£è¡¨ç«è½¦  1 é£æœº  3 é…’åº—ç›¸å…³
 """
 # parent_dir = '/home/python/fh/aaa'
 dirValue = '/root/Data/Data5/dataNew'
 dir_list = os.listdir(dirValue)
- 
- 
- 
- 
- 
+
+
 taglists = []
- 
+
 txt_list = []
 for dirone in dir_list:
     with open(dirValue + '/' + dirone, 'r') as f:
@@ -35,7 +33,7 @@ for dirone in dir_list:
                 # if tag_terms in tag_str:
                 #     txt_list.append(dirone)
                 #     break
- 
+
                 # tag_str_list = tag_str.split()
                 # for tagstr in tag_str_list:
                 #     if tagstr in tag_terms:
@@ -44,10 +42,10 @@ for dirone in dir_list:
                 #         break
                 # if exit_flag:
                 #     break
- 
+
                 for keyword_dict in keyword_lists:
                     exit_flag = False
-                    for key,value in keyword_dict.items():
+                    for key, value in keyword_dict.items():
                         value_list = value.split()
                         for value in value_list:
                             if value in tag_terms:
@@ -55,7 +53,8 @@ for dirone in dir_list:
                                     for line in f1:
                                         f2.write(re.sub(tag, key, line))
                                 os.remove(dirValue + '/' + dirone)
-                                os.rename(dirValue + "/" + dirone + ".bak", dirValue + '/' + dirone)
+                                os.rename(dirValue + "/" + dirone +
+                                          ".bak", dirValue + '/' + dirone)
                                 exit_flag = True
                                 break
                         if exit_flag:

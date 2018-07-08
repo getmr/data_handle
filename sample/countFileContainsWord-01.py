@@ -11,16 +11,16 @@ import string
  
  
 """
-ÔÚdirvalueÄ¿Â¼ÏÂÓÐÅÀÈ¡µ½µÄÑù±¾ÎÄ¼þ(ÎÊÌâ 4¸ö¿Õ¸ñ ±êÇ© ±êÇ©) ¾ÍÊÇ¿´ÄÄÐ©ÎÄ¼þÖÐµÄ±êÇ©°üº¬tag_strÕâÐ©¹Ø¼ü×Ö²¢½«ÕâÐ©°üº¬¹Ø¼ü×ÖµÄÎÄ¼þÍ³¼ÆÒ»ÏÂ¸öÊýs
+åœ¨dirvalueç›®å½•ä¸‹æœ‰çˆ¬å–åˆ°çš„æ ·æœ¬æ–‡ä»¶(é—®é¢˜ 4ä¸ªç©ºæ ¼ æ ‡ç­¾ æ ‡ç­¾) å°±æ˜¯çœ‹å“ªäº›æ–‡ä»¶ä¸­çš„æ ‡ç­¾åŒ…å«tag_strè¿™äº›å…³é”®å­—å¹¶å°†è¿™äº›åŒ…å«å…³é”®å­—çš„æ–‡ä»¶ç»Ÿè®¡ä¸€ä¸‹ä¸ªæ•°s
  
 """
 dirValue = '/home/python/fh/datanew'
 dir_list = os.listdir(dirValue)
 taglists = []
 tag_str = """
-»ð³µ   »ð³µÆ±   »ð³µÕ¾  ¸ßÌú  ÈíÎÔ  Ó²ÎÔ  Ó²×ù  Èí×ù  ÉÏÆÌ ÏÂÆÌ  ÖÐÆÌ   Ì¨Ìú
-»ú³¡ »úÆ±  »ú½¨·Ñ  »ú½¨ µÇ»úÅÆ  º½°à  º½°à  ²ÕÎ»  ºò»úÌü  µÇ¼ÇÊ±¼ä  µÇ»úÅÆ  µÇ»ú¿Ú  ÀÈÇÅ  ÅÜµÀ  º½Ë¾  ÐÐÀî×ªÅÌ  ÉÌÎñ²Õ ¾­¼Ã²Õ  ÃâË°µê  º£¹Ø ×ª»ú ·É»ú
-¾Æµê  ·¿¼ä  µ¥ÈË¼ä  °ü¼ä  Ë«ÈË¼ä ×ÜÍ³Ì×¼ä   Á¬Ëø ×¡ËÞ  ´ó´²·¿  ·¿¼äÊýÁ¿  Èë×¡  ¿ì½Ý
+ç«è½¦   ç«è½¦ç¥¨   ç«è½¦ç«™  é«˜é“  è½¯å§  ç¡¬å§  ç¡¬åº§  è½¯åº§  ä¸Šé“º ä¸‹é“º  ä¸­é“º   å°é“
+æœºåœº æœºç¥¨  æœºå»ºè´¹  æœºå»º ç™»æœºç‰Œ  èˆªç­  èˆªç­  èˆ±ä½  å€™æœºåŽ…  ç™»è®°æ—¶é—´  ç™»æœºç‰Œ  ç™»æœºå£  å»Šæ¡¥  è·‘é“  èˆªå¸  è¡ŒæŽè½¬ç›˜  å•†åŠ¡èˆ± ç»æµŽèˆ±  å…ç¨Žåº—  æµ·å…³ è½¬æœº é£žæœº
+é…’åº—  æˆ¿é—´  å•äººé—´  åŒ…é—´  åŒäººé—´ æ€»ç»Ÿå¥—é—´   è¿žé” ä½å®¿  å¤§åºŠæˆ¿  æˆ¿é—´æ•°é‡  å…¥ä½  å¿«æ·
 """
  
  
@@ -52,7 +52,7 @@ for dirone in dir_list:
  
 print len(txt_list)
  
-print 'Âò·É»úÆ±' in '»úÆ±'
-print string.rfind('Âò·É»úÆ±', '»úÆ±Ê¿´ó·òÈö')
+print 'ä¹°é£žæœºç¥¨' in 'æœºç¥¨'
+print string.rfind('ä¹°é£žæœºç¥¨', 'æœºç¥¨å£«å¤§å¤«æ’’')
  
-print 'Âò·É»úÆ±'.find("»ú³¡ »úÆ±  »ú½¨·Ñ")
+print 'ä¹°é£žæœºç¥¨'.find("æœºåœº æœºç¥¨  æœºå»ºè´¹")
