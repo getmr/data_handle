@@ -9,14 +9,15 @@ class BaiduPinyinBDict():
     def __init__(self):
         self.fenmu = ["c", "d", "b", "f", "g", "h", "ch", "j", "k", "l", "m", "n", "", "p", "q", "r", "s", "t", "sh",
                       "zh", "w", "x", "y", "z"]
-        self.yunmu = [ "uang", "iang", "ong", "ang", "eng", "ian", "iao", "ing", "ong", "uai", "uan", "ai", "an", "ao",
-                       "ei","en", "er", "ua", "ie", "in", "iu", "ou", "ia", "ue", "ui", "un", "uo", "a", "e", "i", "a", "u", "v"]
+        self.yunmu = ["uang", "iang", "ong", "ang", "eng", "ian", "iao", "ing", "ong", "uai", "uan", "ai", "an", "ao",
+                      "ei", "en", "er", "ua", "ie", "in", "iu", "ou", "ia", "ue", "ui", "un", "uo", "a", "e", "i", "a", "u", "v"]
         pass
 
     def hexToWord(self, hexStr):
         wordList = []
         for i in range(0, len(hexStr), 4):
-            word = (chr(int(hexStr[i:i+2], 16)) + chr(int(hexStr[i+2:i+4], 16))).decode('utf-16')
+            word = (chr(int(hexStr[i:i+2], 16)) +
+                    chr(int(hexStr[i+2:i+4], 16))).decode('utf-16')
             if u'\u4e00' <= word <= u'\u9fa5':
                 word = word.encode("utf-8")
                 wordList.append(word)
@@ -38,7 +39,7 @@ class BaiduPinyinBDict():
         hexData = binascii.hexlify(content)
         hexData = hexData[1696:]
         word = ""
-        #过滤前面信息
+        # 过滤前面信息
         while True:
             wordCount = hexData[0:2]
             wordCount = int(wordCount, 16)
@@ -64,9 +65,11 @@ class BaiduPinyinBDict():
         wordList = self.convert2txtByContent(content)
         return wordList
 
+
 if __name__ == "__main__":
     baiduPinyinBDict = BaiduPinyinBDict()
-    words = baiduPinyinBDict.convert2txt("/Users/zhangjintao/Downloads/dict_file_2260_20130216134007_1.0.0.bdict")
+    words = baiduPinyinBDict.convert2txt(
+        "/Users/zhangjintao/Downloads/dict_file_2260_20130216134007_1.0.0.bdict")
     for item in words:
         # print item
         item = re.sub(r'[a-zA-Z\s]+', ' n', item)

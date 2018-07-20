@@ -1,66 +1,68 @@
 from requests_html import HTMLSession, etree
 import re
 import os
- 
- 
+
+
 session = HTMLSession()
- 
- 
-# »ñµÃËùÓĞµÄÇëÇóÁĞ±í
+
+
+# è·å¾—æ‰€æœ‰çš„è¯·æ±‚åˆ—è¡¨
 response = session.get("http://www.lvmama.com/lvyou/wenda/")
 all_elements = response.html.xpath("//div[2]/div/div/a|//div[3]/div/div/a")
 # print(all_elements)
-all_links_pls = [(i.xpath("./a/@href")[0], i.xpath("./a/text()")[0]) for i in all_elements]
+all_links_pls = [(i.xpath("./a/@href")[0], i.xpath("./a/text()")[0])
+                 for i in all_elements]
 print(all_links_pls)
- 
+
 headers = {
     'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.181 Safari/537.36'
 }
- 
+
 _path = os.getcwd()
 lm_path = _path + os.path.sep + 'LvMama'
 if not os.path.exists(lm_path):
     os.mkdir(lm_path)
     os.chdir(lm_path)
-# ÇĞ»»¹¤×÷Ä¿Â¼
+# åˆ‡æ¢å·¥ä½œç›®å½•
 else:
     os.chdir(lm_path)
- 
- 
+
+
 class LvMama(object):
     """
-    »ñµÃÂ¿ÂèÂèÎÊ´ğµÄËùÓĞÎÊÌâ¼°·ÖÀà
-    parse£º½âÎöÊı¾İ
-    response£ºÇëÇóÊı¾İ·µ»ØµÄ¶ÔÏó
-    save£º´¢´æĞÅÏ¢
-    run£ºÆô¶¯³ÌĞò
+    è·å¾—é©´å¦ˆå¦ˆé—®ç­”çš„æ‰€æœ‰é—®é¢˜åŠåˆ†ç±»
+    parseï¼šè§£ææ•°æ®
+    responseï¼šè¯·æ±‚æ•°æ®è¿”å›çš„å¯¹è±¡
+    saveï¼šå‚¨å­˜ä¿¡æ¯
+    runï¼šå¯åŠ¨ç¨‹åº
     """
+
     def __init__(self, hot_base_url, new_base_url):
         self.hot_base_url = hot_base_url
         self.new_base_url = new_base_url
         self.base_urls = [self.hot_base_url, self.new_base_url]
- 
+
     def response(self, url):
         res = session.get(url)
-        # ½âÎöÊı¾İ
+        # è§£ææ•°æ®
         json_data = res.json()
-        # »ñµÃhtml
+        # è·å¾—html
         html = json_data.get("data")
         return html
- 
+
     def parse(self, data):
         print(data, type(data))
-        # ¹¹Ôìxpath¶ÔÏó
+        # æ„é€ xpathå¯¹è±¡
         html_xpath = etree.HTML(data)
-        # »ñµÃ¶ÔÏóÁĞ±í
+        # è·å¾—å¯¹è±¡åˆ—è¡¨
         element_list = html_xpath.xpath("//li")
         return element_list
- 
+
     def save(self, data, page_num):
         for i in data:
-            print(i.xpath("./p/span/text()")[0], i.xpath("./p/a/text()")[0],i.xpath("./div/a[2]/text()")[0])
-        
- 
+            print(i.xpath("./p/span/text()")
+                  [0], i.xpath("./p/a/text()")[0], i.xpath("./div/a[2]/text()")[0])
+
     def run(self, num, pl):
         pl_path = lm_path + os.path.sep + pl
         if not os.path.exists(pl_path):
@@ -68,23 +70,24 @@ class LvMama(object):
             os.chdir(pl_path)
         else:
             os.chdir(pl_path)
-        # ¹¹ÔìÇëÇóurl
+        # æ„é€ è¯·æ±‚url
         for base_url in self.base_urls:
             page_num = 1
             while True:
-                start_url = base_url.format(num,page_num)                
-                # ·¢ÆğÇëÇó£¬·µ»ØÊı¾İ
+                start_url = base_url.format(num, page_num)
+                # å‘èµ·è¯·æ±‚ï¼Œè¿”å›æ•°æ®
                 res_data = self.response(start_url)
                 if res_data is None:
                     break
-                # ½âÎöÊı¾İ
+                # è§£ææ•°æ®
                 data = self.parse(res_data)
                 if data is None:
                     break
-                # ´æ´¢Êı¾İ
+                # å­˜å‚¨æ•°æ®
                 self.save(data, page_num)
                 page_num += 1
- 
+
+
 if __name__ == '__main__':
     base_hot_url = "http://www.lvmama.com/qa-web/lvyou/wenda/ajaxGetNextPageList?keyId={0}&page={1}&pageSize=10&listType=DEST&showType=HOT"
     base_new_url = "http://www.lvmama.com/qa-web/lvyou/wenda/ajaxGetNextPageList?keyId={0}&page={1}&pageSize=10&listType=DEST&showType=NEW"

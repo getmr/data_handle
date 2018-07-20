@@ -33,7 +33,7 @@ CHANNEL_PUB = 'segment-standard'
 REDIS_HOST = '117.78.35.174'
 REDIS_PORT = 6001
 REDIS_PASSWORD = 'aibot123456'
-REDIS_DB=0
+REDIS_DB = 0
 
 try:
     name = sys.argv[2]
@@ -48,12 +48,13 @@ chises_to_alnum       汉字转数字
 remove_emotion        Emoji表情处理
 num_to_ch            数字一一转汉字
 """
-method_list = ['delPunctuae', 'chises_to_alnum', 'remove_emotion']  # 配置标准化方法按先后顺序运行
+method_list = ['delPunctuae', 'chises_to_alnum',
+               'remove_emotion']  # 配置标准化方法按先后顺序运行
 
 # ======================配置的变量 end=============================
 
-current_path =  os.getcwd()
-log =  current_path + os.path.sep + 'log'
+current_path = os.getcwd()
+log = current_path + os.path.sep + 'log'
 if not os.path.exists(log):
     os.mkdir(log)
 
@@ -61,9 +62,11 @@ if not os.path.exists(log):
 def getLogger():
     logger = logging.getLogger(__name__)
     logger.setLevel(level=logging.INFO)
-    handler = logging.FileHandler("{0}segment_standard{1}.log".format(log + os.path.sep, REDIS_PORT))
+    handler = logging.FileHandler(
+        "{0}segment_standard{1}.log".format(log + os.path.sep, REDIS_PORT))
     handler.setLevel(logging.INFO)
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    formatter = logging.Formatter(
+        '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     handler.setFormatter(formatter)
 
     console = logging.StreamHandler()
@@ -78,7 +81,8 @@ logger = getLogger()
 
 
 class StandardHandler():
-    pool = redis.ConnectionPool(host=REDIS_HOST, port=REDIS_PORT, password=REDIS_PASSWORD, db=REDIS_DB)
+    pool = redis.ConnectionPool(
+        host=REDIS_HOST, port=REDIS_PORT, password=REDIS_PASSWORD, db=REDIS_DB)
     redisClient = redis.StrictRedis(connection_pool=pool)
 
     def __init__(self):
@@ -90,7 +94,8 @@ class StandardHandler():
         for message in p.listen():
             if message['type'] != 'message':
                 continue
-            logger.info('从{0}频道取出的数据是:{1}'.format(CHANNEL_SUB, message['data'].decode("utf-8")))
+            logger.info('从{0}频道取出的数据是:{1}'.format(
+                CHANNEL_SUB, message['data'].decode("utf-8")))
             pushData = self.handler_standard(message['data'])
             # 添加切词处理
             logger.info("--------开始切词--------{}".format(pushData))
@@ -130,7 +135,8 @@ class StandardHandler():
         # 1 顺序存储
         # l = [{i.word: i.flag} for i in seg if i.flag != 'x']
         # 去r, p
-        l = [{i.word: i.flag} for i in seg if i.flag not in ['x', 'r', 'p', 'uj']]
+        l = [{i.word: i.flag}
+             for i in seg if i.flag not in ['x', 'r', 'p', 'uj']]
         # 2 针对TF计数存储
         # {"2018":2, "年": 1}
         # 词性过滤
@@ -169,10 +175,12 @@ def hebing(word_list):
             if word_list[i].flag in ['m', 't'] and word_list[i + 1].flag in ['m', 't']:
                 print(word_list[i + 1].flag)
                 if word_list[i].flag == word_list[i + 1].flag:
-                    word_list[i].word = word_list[i].word + word_list[i + 1].word
+                    word_list[i].word = word_list[i].word + \
+                        word_list[i + 1].word
                     del word_list[i + 1]
                 elif word_list[i + 1].flag == 't' and word_list[i].flag == 'm':
-                    word_list[i].word = word_list[i].word + word_list[i + 1].word
+                    word_list[i].word = word_list[i].word + \
+                        word_list[i + 1].word
                     if word_list[i + 1].flag == 't':
                         word_list[i].flag = 't'
                     del word_list[i + 1]
@@ -319,7 +327,7 @@ def _to_chinese16(num):
 
 
 def to_chinese(num):
-    if type(num) != types.IntType and type(num) != types.LongType:
+    if type(num) != int:
         raise NotIntegerError(u'%s is not a integer.' % num)
     if num < _MIN or num > _MAX:
         raise OutOfRangeError(u'%d out of range[%d, %d)' % (num, _MIN, _MAX))
@@ -533,5 +541,3 @@ class ThreadDispatcher(object):
 
 if __name__ == '__main__':
     ThreadDispatcher().start()
-
-

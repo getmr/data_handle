@@ -244,7 +244,7 @@ def _to_chinese16(num):
 
 
 def to_chinese(num):
-    if type(num) != types.IntType and type(num) != types.LongType:
+    if type(num) != int:
         raise NotIntegerError(u'%s is not a integer.' % num)
     if num < _MIN or num > _MAX:
         raise OutOfRangeError(u'%d out of range[%d, %d)' % (num, _MIN, _MAX))

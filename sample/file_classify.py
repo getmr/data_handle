@@ -4,21 +4,21 @@ import os
 import sys
 reload(sys)
 sys.setdefaultencoding("utf-8")
- 
+
 __author__ = 'wangg'
- 
+
 """
-ĞèÇó:ÓĞ¶à¸ötxtÎÄ¼ş (Ã¿¸ötxtÎÄ¼şÊÇÒ»ĞĞºóÃæ¿Õ¸ñ+±êÇ©Êı×Ö)
-    Òª½«Õâ¶à¸ötxtÎÄ¼şºÏ²¢³ÉÒ»¸ötxtÎÄ¼ş(ĞèÇó:°´±êÇ©Êı×Ö·ÖÀà´æ·Å±ÈÈç±êÇ©Îª1µÄÈ«²¿·ÅÔÚÒ»¸ötxtÎÄ¼şÖĞ±êÇ©Îª2µÄ·ÅÒ»¸öÎÄ¼ş....)
+éœ€æ±‚:æœ‰å¤šä¸ªtxtæ–‡ä»¶ (æ¯ä¸ªtxtæ–‡ä»¶æ˜¯ä¸€è¡Œåé¢ç©ºæ ¼+æ ‡ç­¾æ•°å­—)
+    è¦å°†è¿™å¤šä¸ªtxtæ–‡ä»¶åˆå¹¶æˆä¸€ä¸ªtxtæ–‡ä»¶(éœ€æ±‚:æŒ‰æ ‡ç­¾æ•°å­—åˆ†ç±»å­˜æ”¾æ¯”å¦‚æ ‡ç­¾ä¸º1çš„å…¨éƒ¨æ”¾åœ¨ä¸€ä¸ªtxtæ–‡ä»¶ä¸­æ ‡ç­¾ä¸º2çš„æ”¾ä¸€ä¸ªæ–‡ä»¶....)
 """
- 
- 
+
+
 class FileClassify(object):
     def proc(self, fp, tset):
         for line in fp:
             tset.append(line)
         return tset
- 
+
     def dir_list(self, parent_dir):
         dir_list = os.listdir(parent_dir)
         nums = list()
@@ -28,20 +28,20 @@ class FileClassify(object):
         temp = list(set(nums))
         temp.sort(key=nums.index)
         return temp
- 
+
     def write_content(self, fw, line_list):
         for content in line_list:
             fw.write(content)
         fw.write(os.linesep)
         fw.close()
- 
+
     def output_file(self, parent_dir, file_name):
-        """Êä³öÎÄ¼şÁĞ±í"""
+        """è¾“å‡ºæ–‡ä»¶åˆ—è¡¨"""
         fp = open(parent_dir + '/' + file_name, "w")
         for num in self.dir_list(parent_dir):
             fp.write(num)
         fp.close()
- 
+
     def classify_text(self, parent_dir, file_name):
         fr = open(parent_dir + '/' + file_name, 'r')
         for line in fr:
@@ -54,15 +54,15 @@ class FileClassify(object):
             elif line_list[-1] == '2':
                 with open(parent_dir + '/' + '2.txt', 'a+') as f:
                     self.write_content(f, line_list[: -1])
- 
+
             elif line_list[-1] == '3':
                 with open(parent_dir + '/' + '3.txt', 'a+') as f:
                     self.write_content(f, line_list[: -1])
- 
- 
+
+
 if __name__ == "__main__":
-    parent_dir = '/home/python/fh/txt3wan/demo'  # ÎÄ¼şÄ¿Â¼Î»ÖÃ
-    out_file = "newdemo.txt"  # ½«¶à¸öÎÄ¼şÏÈºÏ²¢µ½Õâ¸öÖ¸¶¨ÎÄ¼şÈ»ºó´ÓÕâ¸öÎÄ¼ş½øĞĞ¸ù¾İ±êÇ©·ÖÀà
+    parent_dir = '/home/python/fh/txt3wan/demo'  # æ–‡ä»¶ç›®å½•ä½ç½®
+    out_file = "newdemo.txt"  # å°†å¤šä¸ªæ–‡ä»¶å…ˆåˆå¹¶åˆ°è¿™ä¸ªæŒ‡å®šæ–‡ä»¶ç„¶åä»è¿™ä¸ªæ–‡ä»¶è¿›è¡Œæ ¹æ®æ ‡ç­¾åˆ†ç±»
     fobj = FileClassify()
     fobj.output_file(parent_dir, out_file)
     fobj.classify_text(parent_dir, out_file)
