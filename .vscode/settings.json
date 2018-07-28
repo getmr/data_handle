@@ -1,3 +1,4 @@
 {
-    "python.linting.pep8Enabled": true
+    "python.linting.pep8Enabled": true,
+    "python.pythonPath": "/anaconda3/envs/nlp_35py/bin/python"
 }

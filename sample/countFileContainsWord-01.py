@@ -4,12 +4,12 @@ import sys
 reload(sys)
 sys.setdefaultencoding('utf-8')
 __author__ = 'wangg'
- 
+
 import os
 import re
 import string
- 
- 
+
+
 """
 在dirvalue目录下有爬取到的样本文件(问题 4个空格 标签 标签) 就是看哪些文件中的标签包含tag_str这些关键字并将这些包含关键字的文件统计一下个数s
  
@@ -22,8 +22,8 @@ tag_str = """
 机场 机票  机建费  机建 登机牌  航班  航班  舱位  候机厅  登记时间  登机牌  登机口  廊桥  跑道  航司  行李转盘  商务舱 经济舱  免税店  海关 转机 飞机
 酒店  房间  单人间  包间  双人间 总统套间   连锁 住宿  大床房  房间数量  入住  快捷
 """
- 
- 
+
+
 txt_list = []
 for dirone in dir_list:
     with open(dirValue + '/' + dirone, 'r') as f:
@@ -39,7 +39,7 @@ for dirone in dir_list:
                 # if tag_terms in tag_str:
                 #     txt_list.append(dirone)
                 #     break
- 
+
                 tag_str_list = tag_str.split()
                 for tagstr in tag_str_list:
                     if tagstr in tag_terms:
@@ -48,11 +48,11 @@ for dirone in dir_list:
                         break
                 if exit_flag:
                     break
- 
- 
+
+
 print len(txt_list)
- 
+
 print '买飞机票' in '机票'
 print string.rfind('买飞机票', '机票士大夫撒')
- 
+
 print '买飞机票'.find("机场 机票  机建费")
