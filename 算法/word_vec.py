@@ -6,6 +6,7 @@ Created on 2018/7/11 上午9:08
 import jieba
 import os
 import jieba.posseg as pg
+import numpy
 
 
 # 训练样本集路径
@@ -21,7 +22,6 @@ for file in file_name:
     sentences.append(jieba.lcut(sentence))
 
 
-import numpy
 # 将预处理过的"词库"保存到文件中，便于调试
 numpy_array = numpy.array(sentences)
 numpy.save('sentences.npy', numpy_array)
