@@ -2,7 +2,7 @@ import logging
 import os
 
 # log文件名字
-log_file_name = "log-{}.log".format(8888)
+log_file_name = "log-{}.log".format(os.getpid())
 
 
 current_path = os.getcwd()
@@ -36,3 +36,5 @@ def getLogger():
 
 
 logger = getLogger()
+if __name__ == "__main__":
+    logger.info("alsfalkjflajflka")

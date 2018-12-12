@@ -128,7 +128,7 @@ class StandardHandler():
         jieba.load_userdict("userdict.txt")
         if duplicate_words_flag:
             seg = jieba.posseg.lcut(nlp0_data)
-        logger.info("原声切词"+str(seg))
+        logger.info("原声切词" + str(seg))
         # 相同词性临近词合并
         seg = hebing(seg)
         # 构造所需的存储格式
