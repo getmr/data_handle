@@ -63,7 +63,8 @@ class TuNiu(object):
             text = "{0}    {1}".format(question, "    ".join(tags))
             file_name = str(int(time.time()*1000))
             file_name = file_name + ".txt"
-            with open(file_path + os.path.sep + file_name, "w", encoding="utf-8") as f:
+            with open(file_path + os.path.sep + file_name, "w",
+                      encoding="utf-8") as f:
                 f.write(text)
 
             answer = need_data.get('answerContent')
@@ -72,7 +73,8 @@ class TuNiu(object):
             json_dict = {"question": question,
                          "answer": answer, "tags": tags, "city": city}
             jsonData = json.dumps(json_dict, ensure_ascii=False) + "\n"
-            with open(tuniu_path + os.path.sep + "tuniu.json", "a", encoding="utf-8") as f:
+            with open(tuniu_path + os.path.sep + "tuniu.json", "a",
+                      encoding="utf-8") as f:
                 f.write(jsonData)
 
     def run(self, name, tag):
