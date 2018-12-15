@@ -11,7 +11,8 @@ session = HTMLSession()
 # 获取所有的请求列表
 response = session.get("http://www.tuniu.com/wenda/")
 all_elements = response.html.xpath("//div[2]/div[2]/ul/li/a")
-all_name_url_list = [(i.xpath("./a/@href")[0], i.xpath("./a/@title")[0]) for i in all_elements]
+all_name_url_list = [
+    (i.xpath("./a/@href")[0], i.xpath("./a/@title")[0]) for i in all_elements]
 print(all_name_url_list)
 
 
@@ -35,17 +36,18 @@ class TuNiu(object):
     save：存储信息
     run:启动程序
     """
+
     def __init__(self, No_answer_base_url, with_answer_base_url):
-       self.No_answer_base_url = No_answer_base_url
-       self.with_answer_base_url = with_answer_base_url
-       self.base_urls = [self.No_answer_base_url, self.with_answer_base_url]
+        self.No_answer_base_url = No_answer_base_url
+        self.with_answer_base_url = with_answer_base_url
+        self.base_urls = [self.No_answer_base_url, self.with_answer_base_url]
 
     def response(self, url):
         res = session.get(url)
         json_data = res.json()
         return json_data
-    
-    def parse(self,json_data):
+
+    def parse(self, json_data):
         data = json_data.get("data")
         list_ = data.get("list")
         return list_
@@ -61,15 +63,18 @@ class TuNiu(object):
             text = "{0}    {1}".format(question, "    ".join(tags))
             file_name = str(int(time.time()*1000))
             file_name = file_name + ".txt"
-            with open(file_path + os.path.sep + file_name, "w", encoding="utf-8") as f:
+            with open(file_path + os.path.sep + file_name, "w",
+                      encoding="utf-8") as f:
                 f.write(text)
 
             answer = need_data.get('answerContent')
             city = need_data.get('destinationCity')
             # 构造json
-            json_dict = {"question": question, "answer": answer, "tags": tags, "city": city}
+            json_dict = {"question": question,
+                         "answer": answer, "tags": tags, "city": city}
             jsonData = json.dumps(json_dict, ensure_ascii=False) + "\n"
-            with open(tuniu_path + os.path.sep + "tuniu.json", "a", encoding="utf-8") as f:
+            with open(tuniu_path + os.path.sep + "tuniu.json", "a",
+                      encoding="utf-8") as f:
                 f.write(jsonData)
 
     def run(self, name, tag):
@@ -109,8 +114,3 @@ if __name__ == "__main__":
         print(name, tag)
         tuniu.run(name, tag)
     tuniu.run("热门", '')
-        
-
-
-    
-
